@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+
+  nginx:
+    build: containers/nginx
+    volumes:
+      - ./app:/app
+    ports:
+      - 80:80
+    command: nginx -g 'daemon off;'
+    depends_on:
+      - php
+
+  postgres:
+    image: postgres:12
+    ports:
+      - 5434:5432
+    volumes:
+      - ./data/db/postgres:/var/lib/postgresql
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+    command: postgres
+
+  php:
+    image: registry.gitlab.com/nemutaisama/containers
+    environment:
+      XDEBUG_CONFIG: "client_host=${DOCKER_HOST_IP}"
+      PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
+    volumes:
+      - ./app:/app
+      - ./containers/php/php-fpm.ini:/usr/local/etc/php/php.ini:ro
+    depends_on:
+      - postgres
+
